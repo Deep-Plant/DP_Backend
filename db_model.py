@@ -3,14 +3,14 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    Date,
+    DateTime,
     ForeignKey,
     Sequence,
     Float,
     PrimaryKeyConstraint,
     ForeignKeyConstraint,
     Boolean,
-    CheckConstraint
+    CheckConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -33,7 +33,7 @@ class CategoryInfo(Base):
     speciesId = Column(Integer, ForeignKey("species_info.id"))
     primalValue = Column(String(255), nullable=False)
     secondaryValue = Column(String(255), nullable=False)
-    meat = relationship("Meat", backref="category_info")
+    meats = relationship("Meat", backref="category_info")
 
 
 class GradeInfo(Base):
@@ -88,14 +88,16 @@ class UserTypeInfo(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
 
+
 class DeepAgingInfo(Base):
     __tablename__ = "deepAging_info"
     # 1. 기본키
-    deepAgingId = Column(String(255),primary_key=True)
+    deepAgingId = Column(String(255), primary_key=True)
 
     # 2. 딥에이징 데이터
-    date = Column(Date,nullable=False) # 딥에이징 실시 날짜
-    minute = Column(Integer,nullable=False) # 딥에이징 진행 시간 (분)
+    date = Column(DateTime, nullable=False)  # 딥에이징 실시 날짜
+    minute = Column(Integer, nullable=False)  # 딥에이징 진행 시간 (분)
+
 
 # Main Table
 
@@ -103,16 +105,16 @@ class DeepAgingInfo(Base):
 class User(Base):
     __tablename__ = "user"
     userId = Column(String(255), primary_key=True)  # 유저 ID(이메일)
-    createdAt = Column(Date, nullable=False)  # 유저 ID 생성 시간
-    updatedAt = Column(Date)  # 유저 정보 최근 수정 시간
-    loginAt = Column(Date)  # 유저 로그인 시간
+    createdAt = Column(DateTime, nullable=False)  # 유저 ID 생성 시간
+    updatedAt = Column(DateTime)  # 유저 정보 최근 수정 시간
+    loginAt = Column(DateTime)  # 유저 로그인 시간
     password = Column(String(255), nullable=False)  # 유저 비밀번호(해시화)
     name = Column(String(255), nullable=False)  # 유저명
     company = Column(String(255))  # 직장명
     jobTitle = Column(String(255))  # 직위명
     homeAddr = Column(String(255))  # 유저 주소
     alarm = Column(Boolean, default=False)  # 유저 알람 허용 여부
-    type = Column(Integer, ForeignKey("userType_info.id", nullable=False))  # 유저 타입 ID
+    type = Column(Integer, ForeignKey("userType_info.id"), nullable=False)  # 유저 타입 ID
 
 
 class Meat(Base):
@@ -128,12 +130,12 @@ class Meat(Base):
     statusType = Column(Integer, ForeignKey("status_info.id"), default=0)  # 승인 여부 ID
 
     # 2. 육류 Open API 정보
-    createdAt = Column(Date, nullable=False)  # 육류 관리번호 생성 시간
+    createdAt = Column(DateTime, nullable=False)  # 육류 관리번호 생성 시간
     traceNum = Column(String(255), nullable=False)  # 이력번호(혹은 묶은 번호)
     farmAddr = Column(String(255))  # 농장 주소
     farmerNm = Column(String(255))  # 농장주 이름
-    butcheryYmd = Column(Date, nullable=False)  # 도축 일자
-    birthYmd = Column(Date)  # 출생일자
+    butcheryYmd = Column(DateTime, nullable=False)  # 도축 일자
+    birthYmd = Column(DateTime)  # 출생일자
 
     # 3. 이미지 Path
     qr_imagePath = Column(String(255))  # QR 이미지 S3 경로
@@ -149,10 +151,10 @@ class SensoryEval(Base):  # Assuming Base is defined and imported appropriately
         primary_key=True,
     )  # 육류 관리번호
     seqno = Column(Integer, primary_key=True)  # 가공 횟수
-    __table_args__ = PrimaryKeyConstraint("id", "seqno")
+    __table_args__ = (PrimaryKeyConstraint("id", "seqno"),)
 
     # 2. 관능검사 메타 데이터
-    createdAt = Column(Date, nullable=False)  # 관능검사 생성 시간
+    createdAt = Column(DateTime, nullable=False)  # 관능검사 생성 시간
     userId = Column(
         String(255), ForeignKey("user.userId"), nullable=False
     )  # 관능검사 생성한 유저 ID
@@ -163,11 +165,12 @@ class SensoryEval(Base):  # Assuming Base is defined and imported appropriately
     )  # 원육이면 null, 가공육이면 해당 딥에이징 정보 ID
 
     # 3. 관능검사 측정 데이터
-    marbling = Column(float)
-    color = Column(float)
-    texture = Column(float)
-    surfaceMoisture = Column(float)
-    overall = Column(float)
+    marbling = Column(Float)
+    color = Column(Float)
+    texture = Column(Float)
+    surfaceMoisture = Column(Float)
+    overall = Column(Float)
+
 
 
 class AI_SeonsoryEval(Base):
@@ -183,7 +186,7 @@ class AI_SeonsoryEval(Base):
     )
 
     # 2. AI 관능검사 메타 데이터
-    createdAt = Column(Date, nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     userId = Column(String(255), ForeignKey("user.userId"), nullable=False)
     period = Column(Integer, nullable=False)  # 도축일로부터 경과된 시간
     xai_imagePath = Column(String(255))  # 예측 관능검사 이미지 경로
@@ -196,6 +199,7 @@ class AI_SeonsoryEval(Base):
     texture = Column(Float)
     surfaceMoisture = Column(Float)
     overall = Column(Float)
+
 
 
 class HeatedmeatSensoryEval(Base):
@@ -211,17 +215,19 @@ class HeatedmeatSensoryEval(Base):
     )
 
     # 2. 관능검사 메타 데이터
-    createdAt = Column(Date,nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     userId = Column(String(255), ForeignKey("user.userId"), nullable=False)
     period = Column(Integer, nullable=False)  # 도축일로부터 경과된 시간
     imagePath = Column(String(255))  # 가열육 관능검사 이미지 경로
 
     # 3. 관능검사 측정 데이터
-    flavor = Column(float)
-    juiciness = Column(float)
-    tenderness = Column(float)
-    umami = Column(float)
-    palability = Column(float)
+    flavor = Column(Float)
+    juiciness = Column(Float)
+    tenderness = Column(Float)
+    umami = Column(Float)
+    palability = Column(Float)
+
+
 
 class AI_HeatedmeatSeonsoryEval(Base):
     __tablename__ = "ai_heatedmeat_sensory_eval"
@@ -236,7 +242,7 @@ class AI_HeatedmeatSeonsoryEval(Base):
     )
 
     # 2. AI 관능검사 메타 데이터
-    createdAt = Column(Date, nullable=False)
+    createdAt = Column(DateTime, nullable=False)
     userId = Column(String(255), ForeignKey("user.userId"), nullable=False)
     period = Column(Integer, nullable=False)  # 도축일로부터 경과된 시간
     xai_imagePath = Column(String(255))  # 예측 관능검사 이미지 경로
@@ -248,11 +254,12 @@ class AI_HeatedmeatSeonsoryEval(Base):
     umami = Column(Float)
     palability = Column(Float)
 
+
 class ProbexptData(Base):
     __tablename__ = "probexpt_data"
     # 1. 복합키 설정
-    id = Column(String(255),primary_key=True)
-    seqno = Column(Integer,primary_key=True)
+    id = Column(String(255), primary_key=True)
+    seqno = Column(Integer, primary_key=True)
     __table_args__ = (
         PrimaryKeyConstraint("id", "seqno"),
         ForeignKeyConstraint(
@@ -264,9 +271,9 @@ class ProbexptData(Base):
     )
 
     # 2. 연구실 메타 데이터
-    updatedAt = Column(Date,nullable=False)
-    userId = Column(String(255),ForeignKey("user.userId"),nullable=False)
-    period = Column(Integer,nullable=False)
+    updatedAt = Column(DateTime, nullable=False)
+    userId = Column(String(255), ForeignKey("user.userId"), nullable=False)
+    period = Column(Integer, nullable=False)
 
     # 3. 실험 데이터
     L = Column(Float)
@@ -356,6 +363,7 @@ def load_initial_data(db_session):
             db_session.add(temp)
     db_session.commit()
 
+
 def initialize_db(app):
     from sqlalchemy import create_engine
     from sqlalchemy.orm import scoped_session, sessionmaker
@@ -374,3 +382,75 @@ def initialize_db(app):
     load_initial_data(db_session)
     # 6. db_session을 반환해 DB 세션 관리
     return db_session
+
+
+def item_encoder(data_dict, item, input_data=None):
+    datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
+    datetime2_cvr = ["butcheryYmd", "birthYmd", "date"]
+    str_cvr = [
+        "id",
+        "userId",
+        "traceNum",
+        "farmAddr",
+        "farmerNm",
+        "name",
+        "company",
+        "jobTitle",
+        "homeAddr",
+        "imagePath",
+        "xai_imagePath",
+        "xai_gradeNum_imagePath",
+    ]
+    int_cvr = ["period", "minute", "seqno"]
+    float_cvr = [
+        "marbling",
+        "color",
+        "texture",
+        "surfaceMoisture",
+        "overall",
+        "flavor",
+        "juiciness",
+        "tenderness",
+        "umami",
+        "palability",
+        "L",
+        "a",
+        "b",
+        "DL",
+        "CL",
+        "RW",
+        "ph",
+        "WBSF",
+        "cardepsin_activity",
+        "MFI",
+        "Collagen",
+        "sourness",
+        "bitterness",
+        "richness",
+    ]
+    bool_cvr = ["alarm"]
+    if item in datetime1_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 1)
+    elif item in datetime2_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 2)
+    elif item in str_cvr:
+        data_dict[item] = safe_str(data_dict.get(item))
+    elif item in int_cvr:
+        data_dict[item] = safe_int(data_dict.get(item))
+    elif item in float_cvr:
+        data_dict[item] = safe_float(data_dict.get(item))
+    elif item in bool_cvr:
+        data_dict[item] = safe_bool(data_dict.get(item))
+    else:
+        data_dict[item] = input_data
+
+
+def to_dict(model_instance, query_instance=None):
+    if hasattr(model_instance, "__table__"):
+        return {
+            c.name: getattr(model_instance, c.name)
+            for c in model_instance.__table__.columns
+        }
+    else:
+        cols = query_instance.column_descriptions
+        return {cols[i]["name"]: model_instance[i] for i in range(len(cols))}

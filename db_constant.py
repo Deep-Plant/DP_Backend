@@ -166,7 +166,7 @@ def convert2datetime(date_string, format):
     if date_string == None:
         return date_string
     if format == 1:
-        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
+        return datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
     elif format == 2:
         return datetime.strptime(date_string, "%Y%m%d")
     else:
@@ -249,15 +249,6 @@ def item_encoder(data_dict, item, input_data=None):
         data_dict[item] = input_data
 
 
-def to_dict(model_instance, query_instance=None):
-    if hasattr(model_instance, "__table__"):
-        return {
-            c.name: getattr(model_instance, c.name)
-            for c in model_instance.__table__.columns
-        }
-    else:
-        cols = query_instance.column_descriptions
-        return {cols[i]["name"]: model_instance[i] for i in range(len(cols))}
     
 def calId(id, s_id, type):
     """
