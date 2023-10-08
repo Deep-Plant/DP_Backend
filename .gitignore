@@ -20,7 +20,7 @@ build/
 *.log
 *.sql
 *.sqlite
-serviceAccountKey.json
+*serviceAccountKey.json
 
 # If you're using virtualenv
 venv/

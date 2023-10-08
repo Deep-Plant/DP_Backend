@@ -14,7 +14,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from db_constant import *
+from utils import *
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 Base = declarative_base()
 
@@ -299,7 +301,6 @@ def load_initial_data(db_session):
     """
     초기 데이터 셋업 function
     """
-
     # 1. Specie
     for id, specie in enumerate(species):
         if not SpeciesInfo.query.get(id):
@@ -365,9 +366,6 @@ def load_initial_data(db_session):
 
 
 def initialize_db(app):
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import scoped_session, sessionmaker
-
     # 1. DB Engine 생성
     engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
     # 2. 생성한 DB 엔진에 세션 연결
@@ -383,74 +381,48 @@ def initialize_db(app):
     # 6. db_session을 반환해 DB 세션 관리
     return db_session
 
+def find_id(species_value, primal_value, secondary_value, db_session):
+    """
+    category id 지정 function
+    Params
+    1. specie_value: "cattle" or "pig
+    2. primal_value: "대분할 부위"
+    3. secondary_value: "소분할 부위"
+    4. db: 세션 db
 
-def item_encoder(data_dict, item, input_data=None):
-    datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
-    datetime2_cvr = ["butcheryYmd", "birthYmd", "date"]
-    str_cvr = [
-        "id",
-        "userId",
-        "traceNum",
-        "farmAddr",
-        "farmerNm",
-        "name",
-        "company",
-        "jobTitle",
-        "homeAddr",
-        "imagePath",
-        "xai_imagePath",
-        "xai_gradeNum_imagePath",
-    ]
-    int_cvr = ["period", "minute", "seqno"]
-    float_cvr = [
-        "marbling",
-        "color",
-        "texture",
-        "surfaceMoisture",
-        "overall",
-        "flavor",
-        "juiciness",
-        "tenderness",
-        "umami",
-        "palability",
-        "L",
-        "a",
-        "b",
-        "DL",
-        "CL",
-        "RW",
-        "ph",
-        "WBSF",
-        "cardepsin_activity",
-        "MFI",
-        "Collagen",
-        "sourness",
-        "bitterness",
-        "richness",
-    ]
-    bool_cvr = ["alarm"]
-    if item in datetime1_cvr:
-        data_dict[item] = convert2datetime(data_dict.get(item), 1)
-    elif item in datetime2_cvr:
-        data_dict[item] = convert2datetime(data_dict.get(item), 2)
-    elif item in str_cvr:
-        data_dict[item] = safe_str(data_dict.get(item))
-    elif item in int_cvr:
-        data_dict[item] = safe_int(data_dict.get(item))
-    elif item in float_cvr:
-        data_dict[item] = safe_float(data_dict.get(item))
-    elif item in bool_cvr:
-        data_dict[item] = safe_bool(data_dict.get(item))
-    else:
-        data_dict[item] = input_data
+    Return
+    1. Category.id
+    """
+    # Find specie using the provided specie_value
+    specie = db_session.query(SpeciesInfo).filter_by(value=species_value).first()
 
+    # If the specie is not found, return an appropriate message
+    if not specie:
+        raise Exception("Invalid species data")
 
-def to_dict(model_instance, query_instance=None):
-    if hasattr(model_instance, "__table__"):
-        return {
-            c.name: getattr(model_instance, c.name)
-            for c in model_instance.__table__.columns
-        }
-    else:
-        cols = query_instance.column_descriptions
-        return {cols[i]["name"]: model_instance[i] for i in range(len(cols))}
+    # Find category using the provided primal_value, secondary_value, and the specie id
+    category = (
+        db_session.query(CategoryInfo)
+        .filter_by(
+            primalValue=primal_value,
+            secondaryValue=secondary_value,
+            speciesId=specie.id,
+        )
+        .first()
+    )
+
+    # If the category is not found, return an appropriate message
+    if not category:
+        raise Exception("Invalid primal or secondary value")
+
+    # If everything is fine, return the id of the found category
+    return category.id
+
+def decode_id(id, db_session):
+    result = {"specie_value": None, "primal_value": None, "secondary_value": None}
+    category = db_session.query(CategoryInfo).filter_by(id=id).first()
+    specie = db_session.query(SpeciesInfo).filter_by(id=category.speciesId).first()
+    result["specie_value"] = specie.value
+    result["primal_value"] = category.primalValue
+    result["secondary_value"] = category.secondaryValue
+    return result["specie_value"], result["primal_value"], result["secondary_value"]

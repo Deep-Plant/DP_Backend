@@ -1,4 +1,15 @@
 from datetime import datetime
+import logging
+from logging.handlers import RotatingFileHandler
+
+# 0. 로그파일 설정
+handler = RotatingFileHandler('app.log', maxBytes=5*1024*1024, backupCount=5)  # 최대 5MB, 마지막 5개의 로그 파일 유지
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+
 
 species = ["소", "돼지"]
 cattleLarge = [
@@ -123,7 +134,6 @@ def safe_float(val):
     except (ValueError, TypeError):
         return None
 
-
 def safe_str(val):
     """
     safe STR 반환
@@ -136,7 +146,6 @@ def safe_str(val):
     except Exception:
         return None
 
-
 def safe_int(val):
     """
     Safe Float 변환
@@ -145,7 +154,6 @@ def safe_int(val):
         return int(val)
     except (ValueError, TypeError):
         return None
-
 
 def safe_bool(val):
     """
@@ -247,9 +255,7 @@ def item_encoder(data_dict, item, input_data=None):
         data_dict[item] = safe_bool(data_dict.get(item))
     else:
         data_dict[item] = input_data
-
-
-    
+  
 def calId(id, s_id, type):
     """
     category id 계산 함수
@@ -260,3 +266,99 @@ def calId(id, s_id, type):
 
     """
     return 100 * type + 10 * id + s_id
+
+def item_encoder(data_dict, item, input_data=None):
+    datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
+    datetime2_cvr = ["butcheryYmd", "birthYmd", "date"]
+    str_cvr = [
+        "id",
+        "userId",
+        "traceNum",
+        "farmAddr",
+        "farmerNm",
+        "name",
+        "company",
+        "jobTitle",
+        "homeAddr",
+        "imagePath",
+        "xai_imagePath",
+        "xai_gradeNum_imagePath",
+    ]
+    int_cvr = ["period", "minute", "seqno"]
+    float_cvr = [
+        "marbling",
+        "color",
+        "texture",
+        "surfaceMoisture",
+        "overall",
+        "flavor",
+        "juiciness",
+        "tenderness",
+        "umami",
+        "palability",
+        "L",
+        "a",
+        "b",
+        "DL",
+        "CL",
+        "RW",
+        "ph",
+        "WBSF",
+        "cardepsin_activity",
+        "MFI",
+        "Collagen",
+        "sourness",
+        "bitterness",
+        "richness",
+    ]
+    bool_cvr = ["alarm"]
+    if item in datetime1_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 1)
+    elif item in datetime2_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 2)
+    elif item in str_cvr:
+        data_dict[item] = safe_str(data_dict.get(item))
+    elif item in int_cvr:
+        data_dict[item] = safe_int(data_dict.get(item))
+    elif item in float_cvr:
+        data_dict[item] = safe_float(data_dict.get(item))
+    elif item in bool_cvr:
+        data_dict[item] = safe_bool(data_dict.get(item))
+    else:
+        data_dict[item] = input_data
+
+def to_dict(model_instance, query_instance=None):
+    if hasattr(model_instance, "__table__"):
+        return {
+            c.name: getattr(model_instance, c.name)
+            for c in model_instance.__table__.columns
+        }
+    else:
+        cols = query_instance.column_descriptions
+        return {cols[i]["name"]: model_instance[i] for i in range(len(cols))}
+
+def transfer_folder_image(s3_conn,firestore_conn,db_session, id, new_meat, folder):
+        """
+        Firebase Storage -> S3
+        Params
+        1. id: meat.id
+        2. new_meat: New Meat data object
+        Return
+        None
+        """
+        try:
+            if not firestore_conn.firestorage2server(
+                f"{folder}", id
+            ) or not s3_conn.server2s3(f"{folder}", id):
+                new_meat.imagePath = None
+                raise Exception("Failed to transfer meat image")
+
+            new_meat.imagePath = s3_conn.get_image_url(
+                s3_conn.bucket, f"{folder}/{id}"
+            )
+            db_session.merge(new_meat)
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise Exception(e)
+        

@@ -6,6 +6,7 @@ from flask import (
     redirect,
     url_for,
     render_template_string,
+    current_app
 )
 from db_model import (
     User,
@@ -18,6 +19,7 @@ from db_model import (
 import hashlib
 import uuid
 from datetime import datetime
+from utils import logger
 
 user_api = Blueprint("user_api", __name__)
 
@@ -27,58 +29,63 @@ user_api = Blueprint("user_api", __name__)
 def register_user_data():
     try:
         if request.method == "POST":
+            db_session = current_app.db_session
             data = request.get_json()
-            user = create_user(data)
-            from app import db_session
-
+            user = create_user(db_session,data)
+            
             db_session.add(user)
             db_session.commit()
             return jsonify({"msg": f"{data['userId']}"}), 200
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 404
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 @user_api.route("/get", methods=["GET", "POST"])
 def read_user_data():
     try:
+        db_session = current_app.db_session
         if request.method == "GET":
             userId = request.args.get("userId")
             if userId:
-                result = get_user(userId)
+                result = get_user(db_session,userId)
             else:
-                result = _get_users_by_type()
+                result = _get_users_by_type(db_session)
             return jsonify(result), 200
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 404
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 @user_api.route("/update", methods=["GET", "POST"])
 def update_user_data():
     try:
         if request.method == "POST":
+            db_session = current_app.db_session
             data = request.get_json()
-            user = update_user(data, "old")
-            from app import db_session
-
+            user = update_user(db_session,data)
+            
             db_session.merge(user)
             db_session.commit()
-            return jsonify(get_user(data.get("userId"))), 200
+            return jsonify(get_user(db_session,data.get("userId"))), 200
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 404
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 @user_api.route("/id_check", methods=["GET", "POST"])
 def check_duplicate():
     try:
         if request.method == "GET":
+            db_session = current_app.db_session
             id = request.args.get("userId")
-            user = User.query.filter_by(userId=id).first()
+            user = db_session.query(User).filter_by(userId=id).first()
             if user is None:
                 return jsonify({"msg": "None Duplicated Id"}), 200
             else:
@@ -86,17 +93,19 @@ def check_duplicate():
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 404
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 @user_api.route("/pwd_check", methods=["GET", "POST"])
 def check_pwd():
     try:
         if request.method == "POST":
+            db_session = current_app.db_session
             data = request.get_json()
             id = data.get("userId")
             password = data.get("password")
-            user = User.query.filter_by(userId=id).first()
+            user = db_session.query(User).filter_by(userId=id).first()
             if user is None:
                 return (
                     jsonify(
@@ -117,19 +126,22 @@ def check_pwd():
                     ),
                     401,
                 )
-            return jsonify(get_user(id)), 200
+            
+            return jsonify(get_user(db_session,id)), 200
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 404
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 @user_api.route("/delete", methods=["GET", "POST"])
 def delete_user():
     try:
         if request.method == "GET":
+            db_session = current_app.db_session
             id = request.args.get("userId")
-            user = User.query.filter_by(userId=id).first()
+            user = db_session.query(User).filter_by(userId=id).first()
             if user is None:
                 return (
                     jsonify(
@@ -140,8 +152,6 @@ def delete_user():
                     ),
                     404,
                 )
-            from app import db_session
-
             try:
                 db_session.delete(user)
                 db_session.commit()
@@ -161,11 +171,12 @@ def delete_user():
         else:
             return jsonify({"msg": "Invalid Route, Please Try Again."}), 401
     except Exception as e:
-        return jsonify({"msg": e})
+        logger.exception(str(e))
+        return jsonify({"msg": "Server Error","time":datetime.now().strftime("%H:%M:%S")}),505
 
 
 # 2. API Helper
-def create_user(user_data: dict):
+def create_user(db_session,user_data: dict):
     try:
         for field, value in user_data.items():
             if field == "password":
@@ -173,7 +184,7 @@ def create_user(user_data: dict):
                     user_data, field, hashlib.sha256(value.encode()).hexdigest()
                 )
             elif field == "type":
-                user_type = UserTypeInfo.query.filter_by(name=value).first()
+                user_type = db_session.query(UserTypeInfo).filter_by(name=value).first()
                 if user_type:  # check if user_type exists
                     item_encoder(user_data, field, user_type.id)
                 else:
@@ -186,9 +197,9 @@ def create_user(user_data: dict):
         raise Exception(str(e))
 
 
-def update_user(user_data: dict):
+def update_user(db_session,user_data: dict):
     try:
-        history = User.query.filter_by(userId=user_data.get("userId")).first()
+        history = db_session.query(User).filter_by(userId=user_data.get("userId")).first()
         # 1. 기존 유저 없음
         if history == None:
             raise Exception(f"No User ID {user_data.get('userId')}")
@@ -200,13 +211,12 @@ def update_user(user_data: dict):
                     user_data, field, hashlib.sha256(value.encode()).hexdigest()
                 )
             elif field == "type":
-                user_type = UserTypeInfo.query.filter_by(name=value).first()
+                user_type = db_session.query(UserTypeInfo).filter_by(name=value).first()
                 if user_type:  # check if user_type exists
                     item_encoder(user_data, field, user_type.id)
                 else:
                     item_encoder(user_data, field, 3)
-            elif field == "updatedAt":
-                item_encoder(user_data, field, datetime.now())
+            
             else:
                 item_encoder(user_data, field)
 
@@ -218,10 +228,8 @@ def update_user(user_data: dict):
         raise Exception(str(e))
 
 
-def get_user(userId):
+def get_user(db_session,userId):
     try:
-        from app import db_session
-
         userData = db_session.query(User).filter(User.userId == userId).first()
         userData_dict = to_dict(userData)
         userData_dict["createdAt"] = convert2string(userData_dict.get("createdAt"), 1)
@@ -239,13 +247,13 @@ def get_user(userId):
         raise Exception(str(e))
 
 
-def _get_users_by_type():
+def _get_users_by_type(db_session):
     try:
         # UserType 별로 분류될 유저 정보를 담을 딕셔너리
         user_dict = {}
 
         # 모든 유저 정보를 조회
-        users = User.query.all()
+        users = db_session.query(User).all()
 
         # 조회된 유저들에 대하여
         for user in users:

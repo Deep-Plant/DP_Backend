@@ -5,12 +5,12 @@ from firebase_admin import firestore, storage
 import io
 import os
 
-KEY_PATH = "serviceAccountKey.json"
+
 
 
 # FireBase Data(FireStore & FireStorage)
 class FireBase_:
-    def __init__(self):
+    def __init__(self,KEY_PATH):
         # 1. Making FireStore Connection
         cred = firebase_admin.credentials.Certificate(KEY_PATH)
         firebase_admin.initialize_app(cred)
