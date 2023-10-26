@@ -174,8 +174,7 @@ class SensoryEval(Base):  # Assuming Base is defined and imported appropriately
     overall = Column(Float)
 
 
-
-class AI_SeonsoryEval(Base):
+class AI_SensoryEval(Base):
     __tablename__ = "ai_sensory_eval"
     # 1. 복합키 설정
     id = Column(String(255), primary_key=True)
@@ -201,7 +200,6 @@ class AI_SeonsoryEval(Base):
     texture = Column(Float)
     surfaceMoisture = Column(Float)
     overall = Column(Float)
-
 
 
 class HeatedmeatSensoryEval(Base):
@@ -230,7 +228,6 @@ class HeatedmeatSensoryEval(Base):
     palability = Column(Float)
 
 
-
 class AI_HeatedmeatSeonsoryEval(Base):
     __tablename__ = "ai_heatedmeat_sensory_eval"
     # 1. 복합키 설정
@@ -247,6 +244,7 @@ class AI_HeatedmeatSeonsoryEval(Base):
     createdAt = Column(DateTime, nullable=False)
     userId = Column(String(255), ForeignKey("user.userId"), nullable=False)
     period = Column(Integer, nullable=False)  # 도축일로부터 경과된 시간
+    imagePath = Column(String(255))  # 가열육 관능검사 이미지 경로
     xai_imagePath = Column(String(255))  # 예측 관능검사 이미지 경로
 
     # 3. 관능검사 AI 예측 데이터
@@ -295,134 +293,3 @@ class ProbexptData(Base):
     bitterness = Column(Float)
     umami = Column(Float)
     richness = Column(Float)
-
-
-def load_initial_data(db_session):
-    """
-    초기 데이터 셋업 function
-    """
-    # 1. Specie
-    for id, specie in enumerate(species):
-        if not SpeciesInfo.query.get(id):
-            temp = SpeciesInfo(id=id, value=specie)  # 0: Cattle, 1: Pig
-            db_session.add(temp)
-    db_session.commit()
-
-    # 2. Cattle
-    for id, large in enumerate(cattleLarge):
-        for s_id, small in enumerate(cattleSmall[id]):
-            index = calId(id, s_id, CATTLE)
-            if not CategoryInfo.query.get(index):
-                temp = CategoryInfo(
-                    id=index,
-                    speciesId=CATTLE,
-                    primalValue=large,
-                    secondaryValue=small,
-                )
-                db_session.add(temp)
-    db_session.commit()
-
-    # 3. Pig
-    for id, large in enumerate(pigLarge):
-        for s_id, small in enumerate(pigSmall[id]):
-            index = calId(id, s_id, PIG)
-            if not CategoryInfo.query.get(index):
-                temp = CategoryInfo(
-                    id=index,
-                    speciesId=PIG,
-                    primalValue=large,
-                    secondaryValue=small,
-                )
-                db_session.add(temp)
-    db_session.commit()
-
-    # 4. User
-    for id, Type in usrType.items():
-        if not UserTypeInfo.query.get(id):
-            temp = UserTypeInfo(id=id, name=Type)
-            db_session.add(temp)
-    db_session.commit()
-
-    # 5. GradeNum
-    for id, Type in gradeNum.items():
-        if not GradeInfo.query.get(id):
-            temp = GradeInfo(id=id, value=Type)
-            db_session.add(temp)
-    db_session.commit()
-
-    # 6. SexType
-    for id, Type in sexType.items():
-        if not SexInfo.query.get(id):
-            temp = SexInfo(id=id, value=Type)
-            db_session.add(temp)
-    db_session.commit()
-
-    # 7. StatusType
-    for id, Type in statusType.items():
-        if not StatusInfo.query.get(id):
-            temp = StatusInfo(id=id, value=Type)
-            db_session.add(temp)
-    db_session.commit()
-
-
-def initialize_db(app):
-    # 1. DB Engine 생성
-    engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
-    # 2. 생성한 DB 엔진에 세션 연결
-    db_session = scoped_session(
-        sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    )
-    # 3. Default 쿼리 설정
-    Base.query = db_session.query_property()
-    # 4. 모든 테이블 생성
-    Base.metadata.create_all(bind=engine)
-    # 5. DB 초기 데이터 설정
-    load_initial_data(db_session)
-    # 6. db_session을 반환해 DB 세션 관리
-    return db_session
-
-def find_id(species_value, primal_value, secondary_value, db_session):
-    """
-    category id 지정 function
-    Params
-    1. specie_value: "cattle" or "pig
-    2. primal_value: "대분할 부위"
-    3. secondary_value: "소분할 부위"
-    4. db: 세션 db
-
-    Return
-    1. Category.id
-    """
-    # Find specie using the provided specie_value
-    specie = db_session.query(SpeciesInfo).filter_by(value=species_value).first()
-
-    # If the specie is not found, return an appropriate message
-    if not specie:
-        raise Exception("Invalid species data")
-
-    # Find category using the provided primal_value, secondary_value, and the specie id
-    category = (
-        db_session.query(CategoryInfo)
-        .filter_by(
-            primalValue=primal_value,
-            secondaryValue=secondary_value,
-            speciesId=specie.id,
-        )
-        .first()
-    )
-
-    # If the category is not found, return an appropriate message
-    if not category:
-        raise Exception("Invalid primal or secondary value")
-
-    # If everything is fine, return the id of the found category
-    return category.id
-
-def decode_id(id, db_session):
-    result = {"specie_value": None, "primal_value": None, "secondary_value": None}
-    category = db_session.query(CategoryInfo).filter_by(id=id).first()
-    specie = db_session.query(SpeciesInfo).filter_by(id=category.speciesId).first()
-    result["specie_value"] = specie.value
-    result["primal_value"] = category.primalValue
-    result["secondary_value"] = category.secondaryValue
-    return result["specie_value"], result["primal_value"], result["secondary_value"]
