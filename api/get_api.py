@@ -4,8 +4,8 @@ from flask import (
     request,
     current_app,
 )
-from db_model import Meat, User
-from db_controller import (
+from db.db_model import Meat, User
+from db.db_controller import (
     get_range_meat_data,
     get_meat,
     _getMeatDataByUserId,

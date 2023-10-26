@@ -8,8 +8,8 @@ from flask import (
     render_template_string,
     current_app,
 )
-from db_controller import _deleteSpecificMeatData, _deleteSpecificDeepAgingData
-from user_api import get_user
+from db.db_controller import _deleteSpecificMeatData, _deleteSpecificDeepAgingData
+from api.user_api import get_user
 from utils import *
 
 delete_api = Blueprint("delete_api", __name__)

@@ -8,7 +8,7 @@ from flask import (
     render_template_string,
     current_app,
 )
-from db_controller import _updateConfirmData, _updateRejectData
+from db.db_controller import _updateConfirmData, _updateRejectData
 from utils import *
 
 update_api = Blueprint("update_api", __name__)

@@ -1,16 +1,21 @@
 from datetime import datetime
+import os
 import logging
 from logging.handlers import RotatingFileHandler
 
 # 0. 로그파일 설정
-handler = RotatingFileHandler('app.log', maxBytes=5*1024*1024, backupCount=5)  # 최대 5MB, 마지막 5개의 로그 파일 유지
+if not os.path.exists('log'):
+    os.makedirs('log')
+
+log_file_path = os.path.join('log','app.log')
+handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=5)  # 최대 5MB, 마지막 5개의 로그 파일 유지
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
-
+# 1. Default Data
 species = ["소", "돼지"]
 cattleLarge = [
     "안심",

@@ -1,7 +1,7 @@
 from flask import jsonify
 import requests
 from utils import *
-from db_model import *
+from db.db_model import *
 import uuid
 import hashlib
 from sqlalchemy.orm import joinedload

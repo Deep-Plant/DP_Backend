@@ -5,7 +5,7 @@ from flask import (
     session,
     current_app,
 )
-from db_controller import (
+from db.db_controller import (
     create_specific_std_meat_data,
     create_specific_sensoryEval,
     create_specific_probexpt_data,

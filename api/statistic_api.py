@@ -4,10 +4,10 @@ from flask import (
     request,
     current_app,
 )
-from db_model import (
+from db.db_model import (
     Meat,
 )
-from db_controller import (
+from db.db_controller import (
     get_num_of_processed_raw,
     get_num_of_cattle_pig,
     get_num_of_primal_part,
@@ -280,7 +280,7 @@ def getSensoryStatsOfHeatedProcessed():
 
 # 9. 가열된 가공육 맛 데이터 각 항목 별 평균, 최대, 최소
 @statistic_api.route("/probexpt-stats/heated-processed", methods=["GET", "POST"])
-def getSensoryStatsOfHeatedProcessed():
+def getProbexptStatsOfHeatedProcessed():
     try:
         if request.method == "GET":
             db_session = current_app.db_session

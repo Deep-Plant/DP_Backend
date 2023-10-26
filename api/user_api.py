@@ -4,8 +4,8 @@ from flask import (
     request,
     current_app,
 )
-from db_model import User
-from db_controller import create_user, get_user, _get_users_by_type, update_user
+from db.db_model import User
+from db.db_controller import create_user, get_user, _get_users_by_type, update_user
 import hashlib
 import uuid
 from datetime import datetime
