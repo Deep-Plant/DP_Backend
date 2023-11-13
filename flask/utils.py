@@ -2,14 +2,17 @@ from datetime import datetime
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+import pytz
 
 # 0. 로그파일 설정
-if not os.path.exists('log'):
-    os.makedirs('log')
+if not os.path.exists("log"):
+    os.makedirs("log")
 
-log_file_path = os.path.join('log','app.log')
-handler = RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=5)  # 최대 5MB, 마지막 5개의 로그 파일 유지
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_file_path = os.path.join("log", "app.log")
+handler = RotatingFileHandler(
+    log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5
+)  # 최대 5MB, 마지막 5개의 로그 파일 유지
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -130,6 +133,7 @@ statusType = {0: "대기중", 1: "반려", 2: "승인"}
 CATTLE = 0
 PIG = 1
 
+
 def safe_float(val):
     """
     Safe Float 변환
@@ -138,6 +142,7 @@ def safe_float(val):
         return float(val)
     except (ValueError, TypeError):
         return None
+
 
 def safe_str(val):
     """
@@ -151,6 +156,7 @@ def safe_str(val):
     except Exception:
         return None
 
+
 def safe_int(val):
     """
     Safe Float 변환
@@ -160,6 +166,7 @@ def safe_int(val):
     except (ValueError, TypeError):
         return None
 
+
 def safe_bool(val):
     """
     Safe Float 변환
@@ -168,7 +175,8 @@ def safe_bool(val):
         return bool(val)
     except (ValueError, TypeError):
         return None
-    
+
+
 def convert2datetime(date_string, format):
     """
     String -> Datetime
@@ -178,13 +186,17 @@ def convert2datetime(date_string, format):
     """
     if date_string == None:
         return date_string
+    if format == 0:
+        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
     if format == 1:
-        return datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        tz = pytz.timezone("Asia/Seoul")
+        return datetime.now(tz).strftime("%Y-%m-%dT%H:%M:%S")
     elif format == 2:
         return datetime.strptime(date_string, "%Y%m%d")
     else:
         return None
-    
+
+
 def convert2string(date_object, format):
     """
     Datetime -> String
@@ -200,77 +212,7 @@ def convert2string(date_object, format):
         return date_object.strftime("%Y%m%d")
     else:
         return str(date_object)
-    
-def item_encoder(data_dict, item, input_data=None):
-    datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
-    datetime2_cvr = ["butcheryYmd", "birthYmd", "date"]
-    str_cvr = [
-        "id",
-        "userId",
-        "traceNum",
-        "farmAddr",
-        "farmerNm",
-        "name",
-        "company",
-        "jobTitle",
-        "homeAddr",
-        "imagePath",
-        "xai_imagePath",
-        "xai_gradeNum_imagePath"
-    ]
-    int_cvr = ["period", "minute", "seqno"]
-    float_cvr = [
-        "marbling",
-        "color",
-        "texture",
-        "surfaceMoisture",
-        "overall",
-        "flavor",
-        "juiciness",
-        "tenderness",
-        "umami",
-        "palability",
-        "L",
-        "a",
-        "b",
-        "DL",
-        "CL",
-        "RW",
-        "ph",
-        "WBSF",
-        "cardepsin_activity",
-        "MFI",
-        "Collagen",
-        "sourness",
-        "bitterness",
-        "richness",
-    ]
-    bool_cvr = ["alarm"]
-    if item in datetime1_cvr:
-        data_dict[item] = convert2datetime(data_dict.get(item), 1)
-    elif item in datetime2_cvr:
-        data_dict[item] = convert2datetime(data_dict.get(item), 2)
-    elif item in str_cvr:
-        data_dict[item] = safe_str(data_dict.get(item))
-    elif item in int_cvr:
-        data_dict[item] = safe_int(data_dict.get(item))
-    elif item in float_cvr:
-        data_dict[item] = safe_float(data_dict.get(item))
-    elif item in bool_cvr:
-        data_dict[item] = safe_bool(data_dict.get(item))
-    else:
-        data_dict[item] = input_data
-  
-def calId(id, s_id, type):
-    """
-    category id 계산 함수
-    Params
-    1. id: 대분할 인덱스
-    2. s_id: 소분할 인덱스
-    3. type: 종 인덱스
 
-    """
-    return 100 * type + 10 * id + s_id
 
 def item_encoder(data_dict, item, input_data=None):
     datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
@@ -332,6 +274,80 @@ def item_encoder(data_dict, item, input_data=None):
     else:
         data_dict[item] = input_data
 
+
+def calId(id, s_id, type):
+    """
+    category id 계산 함수
+    Params
+    1. id: 대분할 인덱스
+    2. s_id: 소분할 인덱스
+    3. type: 종 인덱스
+
+    """
+    return 100 * type + 10 * id + s_id
+
+
+def item_encoder(data_dict, item, input_data=None):
+    datetime1_cvr = ["createdAt", "loginAt", "updatedAt"]
+    datetime2_cvr = ["butcheryYmd", "birthYmd", "date"]
+    str_cvr = [
+        "id",
+        "userId",
+        "traceNum",
+        "farmAddr",
+        "farmerNm",
+        "name",
+        "company",
+        "jobTitle",
+        "homeAddr",
+        "imagePath",
+        "xai_imagePath",
+        "xai_gradeNum_imagePath",
+    ]
+    int_cvr = ["period", "minute", "seqno"]
+    float_cvr = [
+        "marbling",
+        "color",
+        "texture",
+        "surfaceMoisture",
+        "overall",
+        "flavor",
+        "juiciness",
+        "tenderness",
+        "umami",
+        "palability",
+        "L",
+        "a",
+        "b",
+        "DL",
+        "CL",
+        "RW",
+        "ph",
+        "WBSF",
+        "cardepsin_activity",
+        "MFI",
+        "Collagen",
+        "sourness",
+        "bitterness",
+        "richness",
+    ]
+    bool_cvr = ["alarm"]
+    if item in datetime1_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 1)
+    elif item in datetime2_cvr:
+        data_dict[item] = convert2datetime(data_dict.get(item), 2)
+    elif item in str_cvr:
+        data_dict[item] = safe_str(data_dict.get(item))
+    elif item in int_cvr:
+        data_dict[item] = safe_int(data_dict.get(item))
+    elif item in float_cvr:
+        data_dict[item] = safe_float(data_dict.get(item))
+    elif item in bool_cvr:
+        data_dict[item] = safe_bool(data_dict.get(item))
+    else:
+        data_dict[item] = input_data
+
+
 def to_dict(model_instance, query_instance=None):
     if hasattr(model_instance, "__table__"):
         return {
@@ -342,28 +358,26 @@ def to_dict(model_instance, query_instance=None):
         cols = query_instance.column_descriptions
         return {cols[i]["name"]: model_instance[i] for i in range(len(cols))}
 
-def transfer_folder_image(s3_conn,firestore_conn,db_session, id, new_meat, folder):
-        """
-        Firebase Storage -> S3
-        Params
-        1. id: meat.id
-        2. new_meat: New Meat data object
-        Return
-        None
-        """
-        try:
-            if not firestore_conn.firestorage2server(
-                f"{folder}", id
-            ) or not s3_conn.server2s3(f"{folder}", id):
-                new_meat.imagePath = None
-                raise Exception("Failed to transfer meat image")
 
-            new_meat.imagePath = s3_conn.get_image_url(
-                s3_conn.bucket, f"{folder}/{id}"
-            )
-            db_session.merge(new_meat)
-            db_session.commit()
-        except Exception as e:
-            db_session.rollback()
-            raise Exception(e)
-        
+def transfer_folder_image(s3_conn, firestore_conn, db_session, id, new_meat, folder):
+    """
+    Firebase Storage -> S3
+    Params
+    1. id: meat.id
+    2. new_meat: New Meat data object
+    Return
+    None
+    """
+    try:
+        if not firestore_conn.firestorage2server(
+            f"{folder}", id
+        ) or not s3_conn.server2s3(f"{folder}", id):
+            new_meat.imagePath = None
+            raise Exception("Failed to transfer meat image")
+
+        new_meat.imagePath = s3_conn.get_image_url(s3_conn.bucket, f"{folder}/{id}")
+        db_session.merge(new_meat)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise Exception(e)

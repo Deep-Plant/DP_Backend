@@ -13,6 +13,11 @@ from utils import logger
 app = Flask(__name__)
 
 
+@app.route("/")
+def hello_world():
+    return "Hello, World!"
+
+
 def initialize_services():
     # 환경변수 다운로드
     load_dotenv()

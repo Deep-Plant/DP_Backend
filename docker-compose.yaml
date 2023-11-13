@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  web:
+    build: ./flask
+    volumes:
+      - ./flask:/app
+    ports:
+      - "8080:8080"
+      - "8081:8080"
+      - "8082:8080"
+    environment:
+      - NAME=World
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web

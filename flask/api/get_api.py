@@ -69,8 +69,8 @@ def getMeatDataById():
                             for v in result["rawmeat"]["probexpt_data"].values()
                         )
                         and all(
-                            v is not None
-                            for v in result["rawmeat"]["sensory_eval"].values()
+                            (k == "deepAgingId" or v is not None)
+                            for k, v in result["rawmeat"]["sensory_eval"].items()
                         )
                     )
                 except:
@@ -175,6 +175,7 @@ def getMeatDataByRangeData():
             505,
         )
 
+
 # 유저 아이디에 해당하는 육류 데이터 출력
 @get_api.route("/by-user-id", methods=["GET", "POST"])
 def getMeatDataByUserId():
@@ -196,6 +197,7 @@ def getMeatDataByUserId():
             ),
             505,
         )
+
 
 # 유저 타입에 해당하는 육류 데이터 출력
 @get_api.route("/by-user-type", methods=["GET", "POST"])
@@ -219,6 +221,7 @@ def getMeatDataByUserType():
             ),
             505,
         )
+
 
 # 전체 유저별로 생성해낸 육류 데이터 출력
 @get_api.route("/by-user-total", methods=["GET", "POST"])
@@ -244,6 +247,7 @@ def getMeatDataByUser():
             505,
         )
 
+
 # 육류 승인 여부별 육류 데이터 출력
 @get_api.route("/by-status", methods=["GET", "POST"])
 def getMeatDataByStatusType():
@@ -265,6 +269,7 @@ def getMeatDataByStatusType():
             ),
             505,
         )
+
 
 # 육류 승인 여부별 범위 육류 데이터 출력
 @get_api.route("/by-status-range", methods=["GET", "POST"])
@@ -294,6 +299,7 @@ def getMeatDataByRangeStatusType():
             505,
         )
 
+
 # 육류 승인 여부별 전체 육류 데이터 출력
 @get_api.route("/by-status-total", methods=["GET", "POST"])
 def getMeatDataByTotalStatusType():
@@ -313,6 +319,7 @@ def getMeatDataByTotalStatusType():
             505,
         )
 
+
 # Texanomy 하드코딩 기본 데이터 출력
 @get_api.route("/default-data", methods=["GET", "POST"])
 def getTexanomyData():
@@ -331,6 +338,7 @@ def getTexanomyData():
             ),
             505,
         )
+
 
 # 예측 데이터 조회
 @get_api.route("/predict-data", methods=["GET", "POST"])

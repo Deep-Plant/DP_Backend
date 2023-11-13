@@ -377,8 +377,8 @@ def create_specific_deep_aging_meat_data(db_session, data):
 
 def create_specific_sensoryEval(db_session, s3_conn, firestore_conn, data):
     # 2. 기본 데이터 받아두기
-    id = data.get("id")
-    seqno = data.get("seqno")
+    id = safe_str(data.get("id"))
+    seqno = safe_int(data.get("seqno"))
     deepAging_data = data.get("deepAging")
     data.pop("deepAging", None)
     meat = db_session.query(Meat).get(id)  # DB에 있는 육류 정보
@@ -389,7 +389,7 @@ def create_specific_sensoryEval(db_session, s3_conn, firestore_conn, data):
         db_session.query(SensoryEval).filter_by(id=id, seqno=seqno).first()
     )  # DB에 있는 육류 정보
     try:
-        if deepAging_data is not None:  # 가공육 관능검사
+        if seqno != 0:  # 가공육 관능검사
             if sensory_eval:  # 기존 Deep Aging을 수정하는 경우
                 deepAgingId = sensory_eval.deepAgingId
                 new_SensoryEval = create_SensoryEval(data, seqno, id, deepAgingId)
@@ -669,8 +669,10 @@ def get_range_meat_data(
             query = query.order_by(Meat.statusType.desc())
 
     # 기간 설정 쿼리
+    db_total_len = db_session.query(Meat).count()
     if start is not None and end is not None:
         query = query.filter(Meat.createdAt.between(start, end))
+        db_total_len = db_session.query.filter(Meat.createdAt.between(start,end)).count()
     query = query.offset(offset * count).limit(count)
 
     # 탐색
@@ -692,7 +694,7 @@ def get_range_meat_data(
         del meat_result[id]["rawmeat"]
 
     result = {
-        "DB Total len": db_session.query(Meat).count(),
+        "DB Total len": db_total_len,
         "id_list": id_result,
         "meat_dict": meat_result,
     }

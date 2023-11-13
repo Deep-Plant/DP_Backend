@@ -175,7 +175,7 @@ def getProbexptStatsOfProcessed():
             505,
         )
 
-
+# 7. 신선육 관능검사 데이터 항목 별 평균, 최대, 최소
 @statistic_api.route("/sensory-stats/fresh", methods=["GET", "POST"])
 def getSensoryStatsOfFresh():
     try:
@@ -199,7 +199,7 @@ def getSensoryStatsOfFresh():
             505,
         )
 
-
+# 8. 가공육 관능검사 데이터 항목 별 평균, 최대, 최소
 @statistic_api.route("/sensory-stats/processed", methods=["GET", "POST"])
 def getSensoryStatsOfProcessed():
     try:
@@ -225,7 +225,7 @@ def getSensoryStatsOfProcessed():
         )
 
 
-# 7. 가열된 신선육 관능 데이터 각 항목 별 평균, 최대, 최소
+# 9. 가열된 신선육 관능 데이터 각 항목 별 평균, 최대, 최소
 @statistic_api.route("/sensory-stats/heated-fresh", methods=["GET", "POST"])
 def getSensoryStatsOfHeatedFresh():
     try:
@@ -250,7 +250,7 @@ def getSensoryStatsOfHeatedFresh():
         )
 
 
-# 8. 가열된 가공육 관능 데이터 각 항목 별 평균, 최대, 최소
+# 10. 가열된 가공육 관능 데이터 각 항목 별 평균, 최대, 최소
 @statistic_api.route("/sensory-stats/heated-processed", methods=["GET", "POST"])
 def getSensoryStatsOfHeatedProcessed():
     try:
@@ -278,7 +278,7 @@ def getSensoryStatsOfHeatedProcessed():
         )
 
 
-# 9. 가열된 가공육 맛 데이터 각 항목 별 평균, 최대, 최소
+# 11. 가열된 가공육 맛 데이터 각 항목 별 평균, 최대, 최소
 @statistic_api.route("/probexpt-stats/heated-processed", methods=["GET", "POST"])
 def getProbexptStatsOfHeatedProcessed():
     try:

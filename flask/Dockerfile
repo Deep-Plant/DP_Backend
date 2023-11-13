@@ -6,12 +6,16 @@ RUN apt-get update && apt-get install -y gcc libffi-dev musl-dev && apt-get clea
 WORKDIR /app
 
 # 라이브러리 설치
-COPY requirements.txt requirements.txt
+COPY . /app
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 파일 컨테이너 복사
-COPY . .
+# 컨테이너 포트 설정
+EXPOSE 8080
+
+# Define Environment Var
+ENV NAME World
 
 # Flask 앱 실행
-CMD ["gunicorn","app:app","-w","4","-b","0.0.0.0:8080"]
+CMD ["gunicorn","-w","4","-b","0.0.0.0:8080","app:app"]
+#CMD ["python","app.py"]
