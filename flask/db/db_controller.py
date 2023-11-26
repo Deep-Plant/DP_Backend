@@ -80,18 +80,23 @@ def load_initial_data(db_session):
 
 
 def initialize_db(app):
-    # 1. DB Engine 생성
-    engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
-    # 2. 생성한 DB 엔진에 세션 연결
-    db_session = scoped_session(
-        sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    )
-    # 3. Default 쿼리 설정
-    Base.query = db_session.query_property()
-    # 4. 모든 테이블 생성
-    Base.metadata.create_all(bind=engine)
-    # 5. DB 초기 데이터 설정
-    load_initial_data(db_session)
+    try:
+        # 1. DB Engine 생성
+        engine = create_engine(app.config["SQLALCHEMY_DATABASE_URI"])
+        # 2. 생성한 DB 엔진에 세션 연결
+        db_session = scoped_session(
+            sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        )
+        # 3. Default 쿼리 설정
+        Base.query = db_session.query_property()
+        # 4. 모든 테이블 생성
+        Base.metadata.create_all(bind=engine)
+        # 5. DB 초기 데이터 설정
+        load_initial_data(db_session)
+    except Exception as e:
+        print(e)
+    else:
+        print("Connect DB OKAY")
     # 6. db_session을 반환해 DB 세션 관리
     return db_session
 

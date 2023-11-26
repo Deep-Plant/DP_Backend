@@ -140,7 +140,7 @@ class Meat(Base):
     birthYmd = Column(DateTime)  # 출생일자
 
     # 3. 이미지 Path
-    qr_imagePath = Column(String(255))  # QR 이미지 S3 경로
+    imagePath = Column(String(255))  # QR 이미지 S3 경로
 
 
 class SensoryEval(Base):  # Assuming Base is defined and imported appropriately

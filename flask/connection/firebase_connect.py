@@ -11,14 +11,19 @@ import os
 # FireBase Data(FireStore & FireStorage)
 class FireBase_:
     def __init__(self,KEY_PATH):
-        # 1. Making FireStore Connection
-        cred = firebase_admin.credentials.Certificate(KEY_PATH)
-        firebase_admin.initialize_app(cred)
-        self.firebase_db = firestore.client()
-        self.fix_data_state = dict()  # 바뀐게 있는 데이터 저장
+        try:
+            # 1. Making FireStore Connection
+            cred = firebase_admin.credentials.Certificate(KEY_PATH)
+            firebase_admin.initialize_app(cred)
+            self.firebase_db = firestore.client()
+            self.fix_data_state = dict()  # 바뀐게 있는 데이터 저장
 
-        # 2. Making FireStorage Connection
-        self.bucket = storage.bucket(os.getenv("FIREBASE_BUCKET_ADDRESS"))
+            # 2. Making FireStorage Connection
+            self.bucket = storage.bucket(os.getenv("FIREBASE_BUCKET_ADDRESS"))
+        except Exception as e:
+            print(e)
+        else:
+            print("Firebase OKAY")
         # 2-1. 저장할 이미지 디렉토리가 없다면 생성합니다.
         os.makedirs("images/sensory_evals", exist_ok=True)
         os.makedirs("images/qr_codes", exist_ok=True)

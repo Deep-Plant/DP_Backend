@@ -21,11 +21,10 @@ def hello_world():
 def initialize_services():
     # 환경변수 다운로드
     load_dotenv()
-
     # RDS DB 연결
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+    
     # Using Flask Application
     with app.app_context():
         # 1. DB Session Connection
@@ -44,24 +43,22 @@ def initialize_services():
         current_app.firestore_conn = FireBase_("serviceAccountKey.json")
 
 
+initialize_services()
+CORS(app)
+#  API Blueprint Connection
+from api.user_api import user_api
+from api.create_api import create_api
+from api.get_api import get_api
+from api.update_api import update_api
+from api.delete_api import delete_api
+from api.statistic_api import statistic_api
+
+app.register_blueprint(user_api, url_prefix="/user")  # user 관련 API
+app.register_blueprint(create_api, url_prefix="/meat/create")  # 육류 정보 조회 API
+app.register_blueprint(get_api, url_prefix="/meat/get")  # 육류 정보 조회 API
+app.register_blueprint(update_api, url_prefix="/meat/update")  # 육류 정보 수정 API
+app.register_blueprint(delete_api, url_prefix="/meat/delete")  # 육류 정보 삭제 API
+app.register_blueprint(statistic_api, url_prefix="/statistic")  # 통계 데이터 조회 API
 # Flask 실행
 if __name__ == "__main__":
-    initialize_services()
-    CORS(app)
-
-    #  API Blueprint Connection
-    from api.user_api import user_api
-    from api.create_api import create_api
-    from api.get_api import get_api
-    from api.update_api import update_api
-    from api.delete_api import delete_api
-    from api.statistic_api import statistic_api
-
-    app.register_blueprint(user_api, url_prefix="/user")  # user 관련 API
-    app.register_blueprint(create_api, url_prefix="/meat/create")  # 육류 정보 조회 API
-    app.register_blueprint(get_api, url_prefix="/meat/get")  # 육류 정보 조회 API
-    app.register_blueprint(update_api, url_prefix="/meat/update")  # 육류 정보 수정 API
-    app.register_blueprint(delete_api, url_prefix="/meat/delete")  # 육류 정보 삭제 API
-    app.register_blueprint(statistic_api, url_prefix="/statistic")  # 통계 데이터 조회 API
-
     app.run(host="0.0.0.0", port=8080)

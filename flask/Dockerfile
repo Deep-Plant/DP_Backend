@@ -17,5 +17,4 @@ EXPOSE 8080
 ENV NAME World
 
 # Flask 앱 실행
-CMD ["gunicorn","-w","4","-b","0.0.0.0:8080","app:app"]
-#CMD ["python","app.py"]
+CMD ["gunicorn","-c","gunicorn.conf.py","app:app"]
