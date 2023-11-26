@@ -74,7 +74,6 @@ jobs:
           # EC2 인스턴스에서 필요한 명령 실행
           sudo apt-get update
           sudo apt-get install -y docker.io docker-compose
-          cd DP_Backend
           docker-compose pull
           docker-compose up -d
           ENDSSH
