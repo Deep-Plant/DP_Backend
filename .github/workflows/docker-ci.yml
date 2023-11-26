@@ -40,6 +40,8 @@ jobs:
           HOST: ${{ secrets.EC2_HOST }}
           USERNAME: ${{ secrets.EC2_USERNAME }}
           KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+          DOT_ENV: ${{ secrets.DOT_ENV }}
         run: |
           # Install SSH client
           sudo apt-get update
@@ -52,7 +54,10 @@ jobs:
           echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
           # SSH to the EC2 instance and pull the latest images and redeploy using docker-compose
           ssh -o 'StrictHostKeyChecking=no' $USERNAME@$HOST << 'ENDSSH'
-          cd path/to/your/docker-compose/folder
+
+          echo "$SERVICE_ACCOUNT_KEY" > ~/flask/serviceAccountKey.json
+          echo "$DOT_ENV" > ~/flask/.env
+
           docker-compose pull
           docker-compose up -d
           ENDSSH
