@@ -5,6 +5,16 @@ RUN apt-get update && apt-get install -y gcc libffi-dev musl-dev && apt-get clea
 # 작업 디렉토리 설정
 WORKDIR /app
 
+# Build Arguments 정의
+# ARG DB_URI
+# ARG AWS_ACCESS_KEY_ID
+# ARG AWS_SECRET_ACCESS_KEY
+# ARG S3_BUCKET_NAME
+# ARG S3_REGION_NAME
+# ARG FIREBASE_BUCKET_ADDRESS
+# ARG ML_SERVER_BASER_URL
+# ARG SERVICE_ACCOUNT_KEY
+
 # 라이브러리 설치
 COPY . /app
 RUN pip install --upgrade pip

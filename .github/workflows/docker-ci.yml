@@ -12,11 +12,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      
-      - name: Prepare serviceAccountKey and .env
-        run: |
-          echo "${{ secrets.SERVICE_ACCOUNT_KEY }}" > ./flask/serviceAccountKey.json
-          echo "DB_URI=${{ secrets.DOT_ENV }}" > ./flask/.env
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -45,6 +40,7 @@ jobs:
           HOST: ${{ secrets.EC2_HOST }}
           USERNAME: ${{ secrets.EC2_USERNAME }}
           KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          
         run: |
           # Install SSH client
           sudo apt-get update
@@ -70,11 +66,21 @@ jobs:
           ssh -o 'StrictHostKeyChecking=no' $USERNAME@$HOST << 'ENDSSH'
 
           # 여기에 서버에서 실행할 명령들 추가
-          
+          git clone https://github.com/Deep-Plant/DP_Backend.git
+          cd DP_Backend
+          echo "DB_URI=${{ secrets.DB_URI }}" > ./flask/.env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ./flask/.env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ./flask/.env
+          echo "S3_BUCKET_NAME=${{secrets.S3_BUCKET_NAME}}">>./flask/.env
+          echo "S3_REGION_NAME=${{secrets.S3_REGION_NAME}}">>./flask/.env
+          echo "FIREBASE_BUCKET_ADDRESS=${{secrets.FIREBASE_BUCKET_ADDRESS}}">>./flask/.env
+          echo "ML_SERVER_BASER_URL=${{secrets.ML_SERVER_BASER_URL}}">>./flask/.env
+          echo "SERVICE_ACCOUNT_KEY=${{secrets.SERVICE_ACCOUNT_KEY}}">>./flask/.env
+
           # EC2 인스턴스에서 필요한 명령 실행
           sudo apt-get update
           sudo apt-get install -y docker.io docker-compose
-          docker-compose pull
+          docker-compose build
           docker-compose up -d
           ENDSSH
 
