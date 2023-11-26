@@ -65,6 +65,13 @@ jobs:
           # SSH to the EC2 instance and execute commands
           ssh -o 'StrictHostKeyChecking=no' $USERNAME@$HOST << 'ENDSSH'
 
+          # Stop and remove all running containers
+          sudo docker stop $(sudo docker ps -aq)
+          sudo docker rm $(sudo docker ps -aq)
+
+          # Remove all Docker images
+          sudo docker rmi $(sudo docker images -q)
+          
           # 여기에 서버에서 실행할 명령들 추가
           rm -rf DP_Backend  # 기존 디렉토리 삭제
           git clone https://github.com/Deep-Plant/DP_Backend.git
