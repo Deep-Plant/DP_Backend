@@ -71,7 +71,7 @@ jobs:
 
           # Remove all Docker images
           sudo docker rmi $(sudo docker images -q)
-          
+
           # 여기에 서버에서 실행할 명령들 추가
           rm -rf DP_Backend  # 기존 디렉토리 삭제
           git clone https://github.com/Deep-Plant/DP_Backend.git
@@ -83,7 +83,7 @@ jobs:
           echo "S3_REGION_NAME=${{secrets.S3_REGION_NAME}}">>./flask/.env
           echo "FIREBASE_BUCKET_ADDRESS=${{secrets.FIREBASE_BUCKET_ADDRESS}}">>./flask/.env
           echo "ML_SERVER_BASER_URL=${{secrets.ML_SERVER_BASER_URL}}">>./flask/.env
-          echo "SERVICE_ACCOUNT_KEY=${{secrets.SERVICE_ACCOUNT_KEY}}">>./flask/.env
+          echo "SERVICE_ACCOUNT_KEY=${{secrets.SERVICE_ACCOUNT_KEY}}">>./flask/serviceAccountKey.json
 
           # EC2 인스턴스에서 필요한 명령 실행
           sudo usermod -aG docker $USER
