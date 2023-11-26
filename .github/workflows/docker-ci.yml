@@ -65,11 +65,14 @@ jobs:
 
           # SSH to the EC2 instance and execute commands
           ssh -o 'StrictHostKeyChecking=no' $USERNAME@$HOST << 'ENDSSH'
+
           # 여기에 서버에서 실행할 명령들 추가
-          echo "$SERVICE_ACCOUNT_KEY" > ~/flask/ serviceAccountKey.json
+          echo "$SERVICE_ACCOUNT_KEY" > ~/flask/serviceAccountKey.json
           echo "$DOT_ENV" > ~/flask/.env
           
-          cd path/to/your/docker-compose/folder
+          # EC2 인스턴스에서 필요한 명령 실행
+          sudo apt-get update
+          sudo apt-get install -y docker.io docker-compose
           docker-compose pull
           docker-compose up -d
           ENDSSH
