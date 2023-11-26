@@ -43,7 +43,7 @@ def initialize_services():
 
         # 3. Firebase Connection
         current_app.firestore_conn = FireBase_(
-            json.loads(base64.b64decode(os.getenv("SERVICE_ACCOUNT_KEY")))
+            os.getenv("SERVICE_ACCOUNT_KEY")
         )
 
 
