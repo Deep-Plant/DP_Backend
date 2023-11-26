@@ -66,6 +66,7 @@ jobs:
           ssh -o 'StrictHostKeyChecking=no' $USERNAME@$HOST << 'ENDSSH'
 
           # 여기에 서버에서 실행할 명령들 추가
+          rm -rf DP_Backend  # 기존 디렉토리 삭제
           git clone https://github.com/Deep-Plant/DP_Backend.git
           cd DP_Backend
           echo "DB_URI=${{ secrets.DB_URI }}" > ./flask/.env
@@ -78,6 +79,7 @@ jobs:
           echo "SERVICE_ACCOUNT_KEY=${{secrets.SERVICE_ACCOUNT_KEY}}">>./flask/.env
 
           # EC2 인스턴스에서 필요한 명령 실행
+          sudo usermod -aG docker $USER
           sudo apt-get update
           sudo apt-get install -y docker.io docker-compose
           docker-compose build
